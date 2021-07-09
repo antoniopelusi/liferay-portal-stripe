@@ -443,6 +443,11 @@
 	<td>//h4[contains(.,'${key_table}')]//..//div/a[contains(.,'${key_entryName}')]//..//..//../div/a[contains(.,'Edit')]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>TABLE_ENTRY_STATUS</td>
+    <td>//h4[contains(.,'${key_table}')]//..//div/a[contains(.,'${key_entryName}')]//..//..//../div/span/span</td>
+    <td></td>
+</tr>
 <!--CATALOGS-->
 <tr>
 	<td>CATALOGS_FORM</td>

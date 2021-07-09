@@ -1,0 +1,31 @@
+definition {
+
+		macro stripeSuccessPayment {
+			Type(
+            	locator1 = "Stripe#EMAIL_FIELD",
+            	value1 = "${email}");
+
+			Type(
+            	locator1 = "Stripe#CARD_NUMBER_FIELD",
+            	value1 = "${cardNumber}");
+
+			Type(
+				locator1 = "Stripe#CARD_EXPIRY_FIELD",
+				value1 = "${cardExpiry}");
+
+			Type(
+            	locator1 = "Stripe#CARD_CVC_FIELD",
+            	value1 = "${cardCvc}");
+
+			Type(
+				locator1 = "Stripe#BILLING_NAME_FIELD",
+				value1 = "${billingName}");
+
+			Click(locator1 = "Stripe#PAY_BUTTON");
+		}
+
+		macro stripeCancelPayment {
+
+        	Click(locator1 = "Stripe#CANCEL_BUTTON");
+        }
+}

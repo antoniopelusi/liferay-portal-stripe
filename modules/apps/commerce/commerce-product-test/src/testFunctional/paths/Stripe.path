@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>Stripe</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Stripe</td></tr>
+</thead>
+<tbody>
+<tr>
+    <td>EMAIL_FIELD</td>
+    <td>//input[contains(@name,'email')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>CARD_NUMBER_FIELD</td>
+    <td>//input[contains(@name,'cardNumber')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>CARD_EXPIRY_FIELD</td>
+    <td>//input[contains(@name,'cardExpiry')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>CARD_CVC_FIELD</td>
+    <td>//input[contains(@name,'cardCvc')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>BILLING_NAME_FIELD</td>
+    <td>//input[contains(@name,'billingName')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>BILLING_COUNTRY_FIELD</td>
+    <td>//input[contains(@name,'billingCountry')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>PAY_BUTTON</td>
+    <td>//div[contains(@class,'SubmitButton-IconContainer')]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>CANCEL_BUTTON</td>
+    <td>//div[contains(@class,'Header-merchantLogoWithLabel')]</td>
+    <td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

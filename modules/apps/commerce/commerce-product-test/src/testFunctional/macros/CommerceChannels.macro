@@ -45,4 +45,12 @@ definition {
 		Click(locator1 = "Icon#CLOSE");
 	}
 
+	macro viewPaymentMethodStatus {
+		AssertTextEquals(
+        	locator1 = "CommerceEntry#TABLE_ENTRY_STATUS",
+        	key_table = "Payment Methods",
+        	key_entryName = "${paymentMethod}",
+        	value1 = "${paymentMethodStatus}");
+	}
+
 }

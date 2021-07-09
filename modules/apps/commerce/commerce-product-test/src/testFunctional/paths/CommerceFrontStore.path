@@ -33,6 +33,16 @@
 	<td>//div[@class='product-gallery']//img[contains(@src, '${key_FSProductImage}')]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>SUCCESS_CHECKOUT_MESSAGE</td>
+    <td>//div[contains(@class,'success-message')]</td>
+    <td></td>
+</tr>
+<tr>
+	<td>CANCEL_CHECKOUT_MESSAGE</td>
+    <td>//div[contains(@class,'alert-warning')]</td>
+    <td></td>
+</tr>
 </tbody>
 </table>
 </body>

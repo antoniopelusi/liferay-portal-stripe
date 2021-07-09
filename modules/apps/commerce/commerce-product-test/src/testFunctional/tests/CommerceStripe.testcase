@@ -1,0 +1,245 @@
+@component-name = "portal-commerce"
+definition {
+
+	property testray.main.component.name = "Commerce";
+
+	setUp {
+    		User.firstLoginPG();
+    	}
+
+    tearDown {
+    	var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+    	if ("${testPortalInstance}" == "true") {
+    		PortalInstances.tearDownCP();
+    	}
+    	else {
+    		Navigator.openURL();
+
+    		CommerceConfiguration.commerceAdminTearDown();
+
+    		CommerceConfiguration.commerceInitializersTearDown();
+
+    		User.logoutPG();
+    	}
+    }
+
+    @description = "This is a test for COMMERCE-6756."
+    test ConfigureStripe {
+		property portal.acceptance = "true";
+    	property test.name.skip.portal.instance = "CPCommerceChannels#CreateNewChannel";
+
+    	CommerceNavigator.gotoPortlet(
+    		category = "Store Management",
+    		portlet = "Channels");
+
+    	Click(locator1 = "Button#PLUS");
+
+    	CommerceEntry.addNewChannelsEntry(
+    		channelCurrency = "US Dollar",
+    		channelName = "Test Channel",
+    		channelType = "Site",
+    		siteName = "Guest");
+
+		Click(
+        	key_menuTab = "General",
+        	locator1 = "CommerceEntry#MENU_TAB");
+
+        CommerceChannels.activatePaymentMethod(paymentMethod = "Stripe");
+
+		Refresh();
+
+        CommerceEntry.clickTableEntryEditButton(
+        	entryName = "Stripe",
+        	table = "Payment Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+        Click(
+        	key_menuTab = "Configuration",
+        	locator1 = "CommerceEntry#MENU_TAB");
+
+		Type(
+        	key_fieldLabel = "Public Key",
+        	locator1 = "TextInput#GENERIC_TEXT_INPUT",
+        	value1 = "pk_test_51IveO5AoXPgHrzyaIZljxbUsSxwCD5UhHLRyVpJ59Q5feRNFlmIJSyC8XHKrVzfPwcUIU2K4O8dIlslTxrSMK6Dc001YXG22RY");
+
+        Type(
+            key_fieldLabel = "Secret Key",
+            locator1 = "TextInput#GENERIC_TEXT_INPUT",
+            value1 = "sk_test_51IveO5AoXPgHrzya4zNDAdfeKIaRS39E7TG0I2CZBZ1sYA3DYFIGFjOxBLHRzXhw3XoMN6z1XAhwyEXalLRfEDIZ00LvBoIF93");
+
+		Button.clickSave();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		Refresh();
+
+		CommerceChannels.viewPaymentMethodStatus(
+			paymentMethod = "Stripe",
+			paymentMethodStatus = "Active");
+    }
+
+    @description = "This is a test for COMMERCE-6756."
+    test SuccessCheckoutStripe {
+    	property portal.acceptance = "true";
+    	property test.name.skip.portal.instance = "CPCommerceChannels#CreateNewChannel";
+
+    	CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
+
+        CommerceNavigator.gotoPortlet(
+        	category = "Store Management",
+            portlet = "Channels");
+
+		CommerceNavigator.gotoEntry(entryName = "Speedwell Portal");
+
+        CommerceChannels.activatePaymentMethod(paymentMethod = "Stripe");
+
+		Refresh();
+
+        CommerceChannels.activatePaymentMethod(paymentMethod = "Money Order");
+
+        Refresh();
+
+        CommerceEntry.clickTableEntryEditButton(
+            entryName = "Stripe",
+            table = "Payment Methods");
+
+        SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+        Click(
+        	key_menuTab = "Configuration",
+        	locator1 = "CommerceEntry#MENU_TAB");
+
+        Type(
+        	key_fieldLabel = "Public Key",
+        	locator1 = "TextInput#GENERIC_TEXT_INPUT",
+        	value1 = "pk_test_51IveO5AoXPgHrzyaIZljxbUsSxwCD5UhHLRyVpJ59Q5feRNFlmIJSyC8XHKrVzfPwcUIU2K4O8dIlslTxrSMK6Dc001YXG22RY");
+
+        Type(
+        	key_fieldLabel = "Secret Key",
+            locator1 = "TextInput#GENERIC_TEXT_INPUT",
+            value1 = "sk_test_51IveO5AoXPgHrzya4zNDAdfeKIaRS39E7TG0I2CZBZ1sYA3DYFIGFjOxBLHRzXhw3XoMN6z1XAhwyEXalLRfEDIZ00LvBoIF93");
+
+        Button.clickSave();
+
+        Click(locator1 = "Icon#CLOSE");
+
+        Navigator.openWithAppendToBaseURL(urlAppend = "web/speedwell");
+
+        CommerceNavigator.gotoSpeedwellTopbarItem(menuItem = "Catalog");
+
+        FrontStore.addInitializerProductToCart(
+        	productName = "U-Joint",
+        	productQuantity = "1");
+
+        CommerceNavigator.gotoMiniCart();
+
+        Button.click(button = "Submit");
+
+        Pause(locator1 = "3000");
+
+        CommerceCheckout.initializersCheckout(
+        	newAddressAddress = "Test Address",
+        	newAddressCity = "Test City",
+        	newAddressCountry = "United States",
+        	newAddressName = "Address Name",
+        	newAddressZipCode = "Test Zip Code",
+        	productName = "U-Joint",
+        	productQuantity = "1",
+        	productUnitPrice = "24",
+        	shippingMethod = "Standard",
+        	paymentMethod = "Stripe");
+
+        CommerceStripe.stripeSuccessPayment(
+        	email = "test@email.com",
+        	cardNumber = "4242 4242 4242 4242",
+        	cardExpiry = "222",
+        	cardCvc = "222",
+        	billingName = "test");
+
+		AssertTextEquals.assertPartialText(
+        	locator1 = "CommerceFrontStore#SUCCESS_CHECKOUT_MESSAGE",
+        	value1 = "Success! Your order has been processed.");
+
+	}
+
+	@description = "This is a test for COMMERCE-6756."
+        test FailCheckoutStripe {
+        	property portal.acceptance = "true";
+        	property test.name.skip.portal.instance = "CPCommerceChannels#CreateNewChannel";
+
+        	CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
+
+            CommerceNavigator.gotoPortlet(
+            	category = "Store Management",
+                portlet = "Channels");
+
+    		CommerceNavigator.gotoEntry(entryName = "Speedwell Portal");
+
+            CommerceChannels.activatePaymentMethod(paymentMethod = "Stripe");
+
+    		Refresh();
+
+            CommerceChannels.activatePaymentMethod(paymentMethod = "Money Order");
+
+            Refresh();
+
+            CommerceEntry.clickTableEntryEditButton(
+                entryName = "Stripe",
+                table = "Payment Methods");
+
+            SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+            Click(
+            	key_menuTab = "Configuration",
+            	locator1 = "CommerceEntry#MENU_TAB");
+
+            Type(
+            	key_fieldLabel = "Public Key",
+            	locator1 = "TextInput#GENERIC_TEXT_INPUT",
+            	value1 = "pk_test_51IveO5AoXPgHrzyaIZljxbUsSxwCD5UhHLRyVpJ59Q5feRNFlmIJSyC8XHKrVzfPwcUIU2K4O8dIlslTxrSMK6Dc001YXG22RY");
+
+            Type(
+            	key_fieldLabel = "Secret Key",
+                locator1 = "TextInput#GENERIC_TEXT_INPUT",
+                value1 = "sk_test_51IveO5AoXPgHrzya4zNDAdfeKIaRS39E7TG0I2CZBZ1sYA3DYFIGFjOxBLHRzXhw3XoMN6z1XAhwyEXalLRfEDIZ00LvBoIF93");
+
+            Button.clickSave();
+
+            Click(locator1 = "Icon#CLOSE");
+
+            Navigator.openWithAppendToBaseURL(urlAppend = "web/speedwell");
+
+            CommerceNavigator.gotoSpeedwellTopbarItem(menuItem = "Catalog");
+
+            FrontStore.addInitializerProductToCart(
+            	productName = "U-Joint",
+            	productQuantity = "1");
+
+            CommerceNavigator.gotoMiniCart();
+
+            Button.click(button = "Submit");
+
+            Pause(locator1 = "3000");
+
+            CommerceCheckout.initializersCheckout(
+            	newAddressAddress = "Test Address",
+            	newAddressCity = "Test City",
+            	newAddressCountry = "United States",
+            	newAddressName = "Address Name",
+            	newAddressZipCode = "Test Zip Code",
+            	productName = "U-Joint",
+            	productQuantity = "1",
+            	productUnitPrice = "24",
+            	shippingMethod = "Standard",
+            	paymentMethod = "Stripe");
+
+			CommerceStripe.stripeCancelPayment();
+
+    		AssertTextEquals.assertPartialText(
+            	locator1 = "CommerceFrontStore#CANCEL_CHECKOUT_MESSAGE",
+            	value1 = "Your payment has been cancelled.");
+
+    	}
+}

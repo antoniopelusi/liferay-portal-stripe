@@ -64,20 +64,47 @@ definition {
 			total = "${subtotal}";
 		}
 
-		CommerceCheckout.viewCheckoutOrderSummary(
-			addressAddress = "${newAddressAddress}",
-			addressCity = "${newAddressCity}",
-			addressCountry = "${newAddressCountry}",
-			addressName = "${newAddressName}",
-			deliveryValue = "${deliveryValue}",
-			paymentMethod = "${paymentMethod}",
-			productName = "${productName}",
-			productPrice = "${productUnitPrice}",
-			productQuantity = "${productQuantity}",
-			subtotalValue = "${subtotal}",
-			totalValue = "${total}");
+		if (isSet(paymentMethod)) {
+        	if (IsElementPresent(key_label = "Payment Method", locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL")) {
+        		Click(
+        			key_radioOption = "${paymentMethod}",
+        			locator1 = "CommerceEntry#RADIO_BUTTON");
 
-		Click(locator1 = "Button#CONTINUE");
+        		Click(locator1 = "Button#CONTINUE");
+
+        		CommerceCheckout.viewCheckoutOrderSummary(
+                			addressAddress = "${newAddressAddress}",
+                			addressCity = "${newAddressCity}",
+                			addressCountry = "${newAddressCountry}",
+                			addressName = "${newAddressName}",
+                			deliveryValue = "${deliveryValue}",
+                			paymentMethod = "${paymentMethod}",
+                			productName = "${productName}",
+                			productPrice = "${productUnitPrice}",
+                			productQuantity = "${productQuantity}",
+                			subtotalValue = "${subtotal}",
+                			totalValue = "${total}");
+
+        		Click(locator1 = "Button#CONTINUE");
+        	}
+        }
+		else {
+			CommerceCheckout.viewCheckoutOrderSummary(
+        		addressAddress = "${newAddressAddress}",
+        		addressCity = "${newAddressCity}",
+        		addressCountry = "${newAddressCountry}",
+        		addressName = "${newAddressName}",
+        		deliveryValue = "${deliveryValue}",
+        		paymentMethod = "${paymentMethod}",
+        		productName = "${productName}",
+        		productPrice = "${productUnitPrice}",
+        		productQuantity = "${productQuantity}",
+        		subtotalValue = "${subtotal}",
+        		totalValue = "${total}");
+
+        	Click(locator1 = "Button#CONTINUE");
+		}
+
 	}
 
 	macro viewCheckoutOrderSummary {
